@@ -16,11 +16,11 @@ namespace MelBox
         {
             try
             {
-                const string query = "INSERT INTO Log(Time, Topic, Prio, Content) VALUES (@time, @topic, @prio, @content)";
+                const string query = "INSERT INTO Log(LogTime, Topic, Prio, Content) VALUES (CURRENT_TIMESTAMP, @topic, @prio, @content)";
 
                 var args = new Dictionary<string, object>
                 {
-                    {"@time", "CURRENT_TIMESTAMP" },
+                    {"@time", "" },
                     {"@topic", topic.ToString() },
                     {"@prio", (ushort)prio},
                     {"@content", content}
@@ -170,9 +170,9 @@ namespace MelBox
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                throw new Exception("Sql-Fehler InsertMessage()");
+                throw new Exception("Sql-Fehler InsertMessage()" + ex.GetType() + "\r\n" + ex.Message );
             }
         }
 
@@ -267,10 +267,10 @@ namespace MelBox
             try
             {
                 //Nur neuen Eintrag erzeugen, wenn msgId noch nicht vorhanden ist.
-                const string query = "INSERT INTO \"BlockedMessages\" (\"Id\", \"StartHour\", \"EndHour\", \"Days\" ) VALUES " +
-                                     "(@msgId, @startHour, @endHour, @days)" +
-                                     "FROM \"BlockedMessages\" WHERE NOT EXISTS " +
-                                     "(SELECT \"Id\" FROM \"BlockedMessages\" WHERE \"Id\" = @msgId)";
+                const string query = "INSERT OR IGNORE INTO \"BlockedMessages\" (\"Id\", \"StartHour\", \"EndHour\", \"Days\" ) VALUES " +
+                                     "(@msgId, @startHour, @endHour, @days)";
+                                     //"FROM \"BlockedMessages\" WHERE NOT EXISTS " +
+                                     //"(SELECT \"Id\" FROM \"BlockedMessages\" WHERE \"Id\" = @msgId)";
 
                 var args = new Dictionary<string, object>
                 {
@@ -293,9 +293,9 @@ namespace MelBox
                     }
                 }
             }
-            catch
+            catch (System.Data.SQLite.SQLiteException sql_ex)
             {
-                throw new Exception("Sql-Fehler InsertBlockedMessage()");
+                throw new Exception("Sql-Fehler InsertBlockedMessage()\r\n" + sql_ex.Message );
             }
         }
 

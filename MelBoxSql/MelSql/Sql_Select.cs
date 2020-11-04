@@ -58,37 +58,45 @@ namespace MelBox
         /// <returns></returns>
         public int GetContactId(string name = "", ulong phone = 0, string email = "", string message = "")
         {
-            const string query = "SELECT Id " +
-                                 "FROM Contact " +
-                                 "WHERE  " +
-                                 "( length(Name) > 3 AND Name = @name ) " +
-                                 "OR ( Phone > 0 AND Phone = @phone ) " +
-                                 "OR ( length(Email) > 5 AND Email = @email )" +
-                                 "OR ( length(KeyWord) > 2 AND KeyWord = @keyWord ) ";
-
-            var args = new Dictionary<string, object>
+            try
             {
-                {"@name", name},
-                {"@phone", phone},
-                {"@email", email},
-                {"@keyWord", GetKeyWords(message)}
-            };
+                const string query = "SELECT Id " +
+                                     "FROM Contact " +
+                                     "WHERE  " +
+                                     "( length(Name) > 0 AND Name = @name ) " +
+                                     "OR ( Phone > 0 AND Phone = @phone ) " +
+                                     "OR ( length(Email) > 0 AND Email = @email )" +
+                                     "OR ( length(KeyWord) > 0 AND KeyWord = @keyWord ) ";
 
-            DataTable result = ExecuteRead(query, args);
+                var args = new Dictionary<string, object>
+                {
+                    {"@name", name},
+                    {"@phone", phone},
+                    {"@email", email},
+                    {"@keyWord", GetKeyWords(message)}
+                };
 
-            if (result.Rows.Count == 0)
-            {
-                if (name.Length < 3)
-                    name = "_UNBEKANNT_";
-                if (email.Length < 5)
-                    email = null;
+                DataTable result = ExecuteRead(query, args);
 
-                InsertContact(name, 0, email, phone, SendToWay.None);
-                return GetContactId(name, phone, email);
+                if (result.Rows.Count == 0)
+                {
+                    if (name.Length < 3)
+                        name = "_UNBEKANNT_";
+                    if (email.Length < 5)
+                        email = null;
+
+                    InsertContact(name, 0, email, phone, SendToWay.None);
+                    return GetContactId(name, phone, email);
+                }
+                else
+                {
+                    int.TryParse(result.Rows[0][0].ToString(), out int r);
+                    return r;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return (int)result.Rows[0][0];
+                throw new Exception("Sql-Fehler GetContactId()" + ex.GetType() + "\r\n" + ex.Message);
             }
         }
 
@@ -99,39 +107,47 @@ namespace MelBox
         /// <returns></returns>
         public uint GetMessageId(string message)
         {
-            const string contentQuery = "SELECT ID FROM MessageContent WHERE Content = @Content";
+            try
+            {
+                const string contentQuery = "SELECT ID FROM MessageContent WHERE Content = @Content";
 
-            var args1 = new Dictionary<string, object>
+                var args1 = new Dictionary<string, object>
                 {
                     {"@Content", message }
                 };
 
-            DataTable dt1 = ExecuteRead(contentQuery, args1);
+                DataTable dt1 = ExecuteRead(contentQuery, args1);
 
-            uint contendId;
-            if (dt1.Rows.Count > 0)
-            {
-                //Eintrag vorhanden
-                uint.TryParse(dt1.Rows[0][0].ToString(), out contendId);
+                uint contendId;
+                if (dt1.Rows.Count > 0)
+                {
+                    //Eintrag vorhanden
+                    uint.TryParse(dt1.Rows[0][0].ToString(), out contendId);
+                }
+                else
+                {
+                    //Eintrag neu erstellen
+                    const string doubleQuery = "INSERT INTO MessageContent (Content) VALUES (@Content); " +
+                                               "SELECT ID FROM MessageContent ORDER BY ID DESC LIMIT 1";
+
+                    dt1 = ExecuteRead(doubleQuery, args1);
+
+                    uint.TryParse(dt1.Rows[0][0].ToString(), out contendId);
+                }
+
+                if (contendId == 0)
+                {
+                    //Provisorisch:
+                    throw new Exception("GetMessageId() Kontakt konnte nicht zugeordnet werden.");
+                }
+
+                return contendId;
+
             }
-            else
+            catch (Exception ex)
             {
-                //Eintrag neu erstellen
-                const string doubleQuery = "INSERT INTO MessageContent (Content) VALUES (@Content); " +
-                                           "SELECT ID FROM MessageContent ORDER BY ID DESC LIMIT 1";
-
-                dt1 = ExecuteRead(doubleQuery, args1);
-
-                uint.TryParse(dt1.Rows[0][0].ToString(), out contendId);
+                throw new Exception("Sql-Fehler GetMessageId()" + ex.GetType() + "\r\n" + ex.Message);
             }
-
-            if (contendId == 0)
-            {
-                //Provisorisch:
-                throw new Exception("GetMessageId() Kontakt konnte nicht zugeordnet werden.");
-            }
-
-            return contendId;
         }
 
     }
