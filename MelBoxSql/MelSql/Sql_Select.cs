@@ -2,28 +2,11 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MelBoxSql
+namespace MelBox
 {
-    public partial class MelBoxSql
+    public partial class MelSql
     {
-
-        internal static string GetKeyWords(string MessageContent)
-        {
-
-            char[] split = new char[] { ' ', ',', '-', '.', ':', ';' };
-            string[] words = MessageContent.Split(split);
-
-            string KeyWords = words[0].Trim();
-
-            if (words.Length > 1) KeyWords += words[1].Trim();
-
-            return KeyWords;
-        }
-
         private DataTable ExecuteRead(string query, Dictionary<string, object> args)
         {
             if (string.IsNullOrEmpty(query.Trim()))
@@ -32,7 +15,9 @@ namespace MelBoxSql
             using (var con = new SQLiteConnection(Datasource))
             {
                 con.Open();
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                 using (SQLiteCommand cmd = new SQLiteCommand(query, con))
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                 {
                     if (args != null)
                     {
@@ -50,7 +35,7 @@ namespace MelBoxSql
                     {
                         da.Fill(dt);
                     }
-                    catch 
+                    catch
                     {
                         throw new Exception("Fehler ExecuteRead()");
                     }
@@ -114,7 +99,6 @@ namespace MelBoxSql
         /// <returns></returns>
         public uint GetMessageId(string message)
         {
-            uint contendId = 0;
             const string contentQuery = "SELECT ID FROM MessageContent WHERE Content = @Content";
 
             var args1 = new Dictionary<string, object>
@@ -124,6 +108,7 @@ namespace MelBoxSql
 
             DataTable dt1 = ExecuteRead(contentQuery, args1);
 
+            uint contendId;
             if (dt1.Rows.Count > 0)
             {
                 //Eintrag vorhanden
@@ -140,7 +125,14 @@ namespace MelBoxSql
                 uint.TryParse(dt1.Rows[0][0].ToString(), out contendId);
             }
 
+            if (contendId == 0)
+            {
+                //Provisorisch:
+                throw new Exception("GetMessageId() Kontakt konnte nicht zugeordnet werden.");
+            }
+
             return contendId;
         }
+
     }
 }

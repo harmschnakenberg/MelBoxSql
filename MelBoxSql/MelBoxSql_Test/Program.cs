@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using MelBox;
 
 namespace MelBoxSql_Test
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
+             MelSql sql = new MelSql();
 
+            sql.Log(MelBox.MelSql.LogTopic.Start, MelSql.LogPrio.Info, "Dies ist der erste Manuelle Eintrag.");
         }
     }
 }

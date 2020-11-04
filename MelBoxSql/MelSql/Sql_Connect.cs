@@ -3,48 +3,14 @@ using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
 
-namespace MelBoxSql
+namespace MelBox
 {
-    public partial class MelBoxSql
+    public partial class MelSql
     {
         #region Fields
         //Connect-String für Datenbankverbindung
         private readonly string Datasource = "Data Source=" + DbPath;
 
-        /// <summary>
-        /// Gibt den Weg des Empfangs / der Sendung an. 
-        /// </summary>
-        [Flags]
-        public enum SendToWay
-        {
-            None = 0,   //nicht weitersenden          
-            Sms = 1,    //weiterleiten per SMS
-            Email = 2   //weiterleiten per Email
-        }
-
-        /// <summary>
-        /// Kategorien für Logging
-        /// </summary>
-        public enum LogTopic
-        {
-            Allgemein,
-            Start,
-            Shutdown,
-            Sms,
-            Email,
-            Sql
-        }
-
-        /// <summary>
-        /// Priorisierung von Log-EInträgen (ggf später auch Meldungen )
-        /// </summary>
-        public enum LogPrio
-        {
-            Unknown,
-            Error,
-            Warning,
-            Info
-        }
         #endregion
 
         #region Properties
@@ -55,7 +21,7 @@ namespace MelBoxSql
 
         #region Methods
 
-        public MelBoxSql()
+        public MelSql()
         {
             //Datenbak prüfen / erstellen
             if (!System.IO.File.Exists(DbPath))
@@ -64,11 +30,9 @@ namespace MelBoxSql
             }
         }
 
-
         /// <summary>
         /// Erzeugt eine neue Datenbankdatei, erzeugt darin Tabellen, Füllt diverse Tabellen mit Defaultwerten.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Security", "CA2100:Review SQL queries for security vulnerabilities", Justification = "<Ausstehend>")]
         private void CreateNewDataBase()
         {
             //Erstelle Datenbank-Datei und öffne einmal 
@@ -78,7 +42,7 @@ namespace MelBoxSql
 
             //Erzeuge Tabellen in neuer Datenbank-Datei
             //Zeiten im Format TEXT (Lesbarkeit Rohdaten)
-            using (var con = new SQLiteConnection(Datasource))
+            using (SQLiteConnection con = new SQLiteConnection(Datasource))
             {
                 con.Open();
 
@@ -105,36 +69,39 @@ namespace MelBoxSql
 
                         //Nachrichten
                         "CREATE TABLE \"MessageContent\" (\"Id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"Content\" TEXT NOT NULL UNIQUE );",
-                        "INSERT INTO \"MessageContent\" (\"Content\") VALUES ('Datenbank neu erstellt.');",
+                        //"INSERT INTO \"MessageContent\" (\"Content\") VALUES ('Datenbank neu erstellt.');",
 
                         "CREATE TABLE \"LogRecieved\"( \"Id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"RecieveTime\" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, \"FromContactId\" INTEGER NOT NULL, \"ContentId\" INTEGER NOT NULL);",
 
-                        "INSERT INTO \"LogRecieved\" (\"RecieveTime\", \"FromContactId\", \"ContentId\") VALUES " +
-                        "( CURRENT_TIMESTAMP, 0, 1, 1);",
+                        //"INSERT INTO \"LogRecieved\" (\"RecieveTime\", \"FromContactId\", \"ContentId\") VALUES " +
+                        //"( CURRENT_TIMESTAMP, 0, 1, 1);",
 
                         "CREATE TABLE \"LogSent\" (\"Id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"LogRecievedId\" INTEGER NOT NULL, \"SendTime\" TEXT NOT NULL, \"SentToId\" INTEGER NOT NULL, \"SentVia\" INTEGER NOT NULL );" +
-                        "INSERT INTO \"LogSent\" (\"LogRecievedId\", \"SentTime\", \"SentToId\", \"SentVia\") VALUES " +
-                        "(1, CURRENT_TIMESTAMP, 1, " + SendToWay.Email + ");",
+                        //"INSERT INTO \"LogSent\" (\"LogRecievedId\", \"SentTime\", \"SentToId\", \"SentVia\") VALUES " +
+                        //"(1, CURRENT_TIMESTAMP, 1, " + SendToWay.Email + ");",
 
                         //Bereitschaft
-                        "CREATE TABLE \"Shifts\"( \"Id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"EntryTime\" TEXT NOT NULL, " +
+                        "CREATE TABLE \"Shifts\"( \"Id\" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \"EntryTime\" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, " +
                         "\"ContactId\" INTEGER NOT NULL, \"StartTime\" TEXT NOT NULL, \"EndTime\" TEXT NOT NULL );",
 
-                        "INSERT INTO \"Shifts\" (\"EntryTime\", \"ContactId\", \"StartTime\", \"EndTime\") VALUES " +
-                        "(CURRENT_TIMESTAMP, 1, CURRENT_TIMESTAMP, date('now','end of week') )",
+                        //"INSERT INTO \"Shifts\" (\"EntryTime\", \"ContactId\", \"StartTime\", \"EndTime\") VALUES " +
+                        //"(CURRENT_TIMESTAMP, 1, CURRENT_TIMESTAMP, date('now','end of week') )",
 
-                        "CREATE TABLE \"BlockedMessages\"( \"Id\" INTEGER NOT NULL UNIQUE, \"StartHour\" INTEGER NOT NULL, " +
-                        "\"EndHour\" INTEGER NOT NULL, \"WorkdaysOnly\" INTEGER NOT NULL CHECK (\"WorkdaysOnly\" < 2));" +
+                        "CREATE TABLE \"BlockedMessages\"( \"Id\" INTEGER NOT NULL UNIQUE, \"EntryTime\" TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, \"StartHour\" TEXT NOT NULL, " +
+                        "\"EndHour\" TEXT NOT NULL, \"Days\" INTEGER NOT NULL CHECK (\"Days\" < 10));"
 
-                        "INSERT INTO \"BlockedMessages\" (\"Id\", \"StartHour\", \"EndHour\", \"WorkdaysOnly\" ) VALUES " +
-                        "(1,8,8,0);"
+                        //"INSERT INTO \"BlockedMessages\" (\"Id\", \"StartHour\", \"EndHour\", \"WorkdaysOnly\" ) VALUES " +
+                        //"(1,8,8,0);"
                 };
 
                 foreach (string query in TableCreateQueries)
                 {
-                    using (SQLiteCommand sQLiteCommand = new SQLiteCommand(query, con))
+#pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
+                    using (var SQLiteCommand = new SQLiteCommand(query, con))
+#pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
                     {
-                        using (SQLiteCommand cmd = sQLiteCommand)
+
+                        using (SQLiteCommand cmd = SQLiteCommand)
                         {
                             cmd.ExecuteNonQuery();
                         }
@@ -151,6 +118,13 @@ namespace MelBoxSql
                 InsertContact("Henry Kreutzträger", 1, "henry.kreutztraeger@kreutztraeger.de", 491727889419, SendToWay.None);
                 InsertContact("Bernd Kreutzträger", 1, "bernd.kreutztraeger@kreutztraeger.de", 491727875067, SendToWay.None);
 
+                InsertMessage("Datenbank neu erstellt.", 0, "smszentrale@kreutztraeger.de");
+
+                InsertLogSent(1, 1, SendToWay.None);
+
+                InsertShift(2, DateTime.Now, DateTime.Now.AddDays(2));
+
+                InsertBlockedMessage(1);
             }
 
             #endregion
