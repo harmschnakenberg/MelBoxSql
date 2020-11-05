@@ -108,7 +108,7 @@ namespace MelBox
                     }
                 }
 
-                InsertCompany("_UNBEKANNT_'", "Musterstraße 123", "12345 Modellstadt");
+                InsertCompany("_UNBEKANNT_", "Musterstraße 123", "12345 Modellstadt");
                 InsertCompany("Kreutzträger Kältetechnik GmbH & Co. KG", "Theodor-Barth-Str. 21", "28307 Bremen");
 
                 InsertContact("SMSZentrale", 1, "smszentrale@kreutztraeger.de", 4915142265412, SendToWay.None);

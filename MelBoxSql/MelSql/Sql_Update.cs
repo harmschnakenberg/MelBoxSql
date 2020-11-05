@@ -47,6 +47,7 @@ namespace MelBox
 
                 using (SQLiteConnection con = new SQLiteConnection(Datasource))
                 {
+                    con.Open();
                     using (SQLiteCommand cmd = new SQLiteCommand(query, con))
                     {
                         foreach (var pair in args)
@@ -73,7 +74,8 @@ namespace MelBox
         /// <param name="companyId">Id der Firma</param>
         /// <param name="email"></param>
         /// <param name="phone"></param>
-        public void UpdateContact(int contactId, SendToWay sendWay, string name = "", int companyId = 0, string email = "", ulong phone = 0)
+        /// <param name="keyWord">Leerstring wird ignoriert</param>
+        public void UpdateContact(int contactId, SendToWay sendWay, string name = "", int companyId = 0, string email = "", ulong phone = 0, string keyWord = "")
         {
             try
             {
@@ -111,10 +113,21 @@ namespace MelBox
                     args.Add("@phone", phone);
                 }
 
+                if (keyWord == null) //kein KeyWord 
+                {
+                    query += "UPDATE \"Contact\" SET \"KeyWord\" = NULL WHERE \"Id\" = @contactId;";
+                }
+                else if (keyWord.Length > 0) //Leerstring als KeyWord nicht zulässig                
+                {
+                    query += "UPDATE \"Contact\" SET \"KeyWord\" = @keyWord WHERE \"Id\" = @contactId;";
+                    args.Add("@keyWord", keyWord);
+                }
+            
                 if (query.Length < 1) return;
 
                 using (SQLiteConnection con = new SQLiteConnection(Datasource))
                 {
+                    con.Open();
 #pragma warning disable CA2100 // Review SQL queries for security vulnerabilities
                     using (SQLiteCommand cmd = new SQLiteCommand(query, con))
 #pragma warning restore CA2100 // Review SQL queries for security vulnerabilities
@@ -152,19 +165,19 @@ namespace MelBox
 
                 if (contactId > 0)
                 {
-                    query += "UPDATE \"Contact\" SET \"ContactId\" = @contactId WHERE \"Id\" = @shiftId;";
+                    query += "UPDATE \"Shifts\" SET \"ContactId\" = @contactId WHERE \"Id\" = @shiftId;";
                     args.Add("@contactId", contactId);
                 }
 
                 if (startTime > DateTime.MinValue)
                 {
-                    query += "UPDATE \"Contact\" SET \"StartTime\" = @startTime WHERE \"Id\" = @shiftId;";
+                    query += "UPDATE \"Shifts\" SET \"StartTime\" = @startTime WHERE \"Id\" = @shiftId;";
                     args.Add("@startTime", startTime);
                 }
 
                 if (endTime > DateTime.MinValue)
                 {
-                    query += "UPDATE \"Contact\" SET \"EndTime\" = @endTime WHERE \"Id\" = @shiftId;";
+                    query += "UPDATE \"Shifts\" SET \"EndTime\" = @endTime WHERE \"Id\" = @shiftId;";
                     args.Add("@endTime", endTime);
                 }
 
@@ -176,6 +189,7 @@ namespace MelBox
 
                 using (SQLiteConnection con = new SQLiteConnection(Datasource))
                 {
+                    con.Open();
                     using (SQLiteCommand cmd = new SQLiteCommand(query, con))
                     {
                         foreach (var pair in args)
@@ -186,9 +200,9 @@ namespace MelBox
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                throw new Exception("Sql-Fehler UpdateShift()");
+                throw new Exception("Sql-Fehler UpdateShift()\r\n" + ex.GetType() + "\r\n" + ex.Message);
             }
         }
 
@@ -235,6 +249,7 @@ namespace MelBox
 
                 using (SQLiteConnection con = new SQLiteConnection(Datasource))
                 {
+                    con.Open();
                     using (SQLiteCommand cmd = new SQLiteCommand(query, con))
                     {
                         foreach (var pair in args)
@@ -245,9 +260,9 @@ namespace MelBox
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                throw new Exception("Sql-Fehler UpdateBlockedMessage");
+                throw new Exception("Sql-Fehler UpdateBlockedMessage\r\n" + ex.GetType() + "\r\n" + ex.Message);
             }
         }
 

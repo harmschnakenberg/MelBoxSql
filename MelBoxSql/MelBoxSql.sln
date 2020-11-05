@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MelBoxSql_Test", "MelBoxSql
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MelSql", "MelSql\MelSql.csproj", "{C60A5C3D-5640-4B55-8B9E-8F874D876730}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GsmLib", "GsmLib\GsmLib.csproj", "{49B8533E-2D6E-492B-8171-D6B8D6050AB2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,14 @@ Global
 		{C60A5C3D-5640-4B55-8B9E-8F874D876730}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C60A5C3D-5640-4B55-8B9E-8F874D876730}.Release|x64.ActiveCfg = Release|x64
 		{C60A5C3D-5640-4B55-8B9E-8F874D876730}.Release|x64.Build.0 = Release|x64
+		{49B8533E-2D6E-492B-8171-D6B8D6050AB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49B8533E-2D6E-492B-8171-D6B8D6050AB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49B8533E-2D6E-492B-8171-D6B8D6050AB2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{49B8533E-2D6E-492B-8171-D6B8D6050AB2}.Debug|x64.Build.0 = Debug|Any CPU
+		{49B8533E-2D6E-492B-8171-D6B8D6050AB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49B8533E-2D6E-492B-8171-D6B8D6050AB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49B8533E-2D6E-492B-8171-D6B8D6050AB2}.Release|x64.ActiveCfg = Release|Any CPU
+		{49B8533E-2D6E-492B-8171-D6B8D6050AB2}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

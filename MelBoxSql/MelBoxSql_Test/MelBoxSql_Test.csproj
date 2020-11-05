@@ -82,6 +82,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GsmLib\GsmLib.csproj">
+      <Project>{49b8533e-2d6e-492b-8171-d6b8d6050ab2}</Project>
+      <Name>GsmLib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MelSql\MelSql.csproj">
       <Project>{c60a5c3d-5640-4b55-8b9e-8f874d876730}</Project>
       <Name>MelSql</Name>
